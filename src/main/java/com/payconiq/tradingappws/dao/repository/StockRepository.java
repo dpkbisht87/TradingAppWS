@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface StockRepository extends MongoRepository<Stock, Integer> {
+    Stock findByName(String name);
 }

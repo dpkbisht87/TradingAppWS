@@ -19,5 +19,5 @@ import java.util.Date;
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class StockUpdateDto {
-    private BigDecimal currentValue;
+    private BigDecimal currentPrice;
 }

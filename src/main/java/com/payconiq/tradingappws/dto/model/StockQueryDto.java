@@ -18,10 +18,21 @@ import java.util.Date;
 @ToString
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class StockQueryDto {
+public class StockQueryDto  implements Comparable {
     private Long id;
+    
     private String name;
-    private BigDecimal currentValue;
+    
+    private BigDecimal currentPrice;
+    
+    private Date creationDate;
+    
     private Date lastUpdate;
+    
     private boolean locked;
+    
+    @Override
+    public int compareTo(Object o) {
+        return this.getName().compareTo(((StockQueryDto) o).getName());
+    }
 }

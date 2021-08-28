@@ -18,12 +18,12 @@ import java.util.Date;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data
 public class StockCreateDto {
-    @NotBlank(message = "The Id is required.")
     private Long id;
     
-    @NotBlank(message = "The name is required.")
     private String name;
-    private BigDecimal currentValue;
+    
+    private BigDecimal currentPrice;
+    
     private Date lastUpdate;
     
     private boolean locked;

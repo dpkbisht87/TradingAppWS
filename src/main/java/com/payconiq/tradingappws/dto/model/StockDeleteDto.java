@@ -18,6 +18,5 @@ import javax.validation.constraints.NotBlank;
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class StockDeleteDto {
-    @NotBlank(message = "The Id is required.")
     private Long id;
 }

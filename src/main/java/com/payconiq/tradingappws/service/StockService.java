@@ -1,21 +1,25 @@
 package com.payconiq.tradingappws.service;
 
 import com.payconiq.tradingappws.dao.entity.Stock;
+import com.payconiq.tradingappws.dto.model.StockCreateDto;
+import com.payconiq.tradingappws.dto.model.StockQueryDto;
+import com.payconiq.tradingappws.dto.model.StockUpdateDto;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 public interface StockService {
-    List<Stock> getAllStocks();
+    Set<StockQueryDto> getAllStocks();
     
-    Stock getStockById(int id);
+    StockQueryDto getStockById(int id);
     
     // Create a new Stock
-    Stock createStock(Stock stock);
+    StockQueryDto createStock(StockCreateDto stockCreateDto);
     
     // Update the price of existing Stock
-    Stock updateStockPrice(int id, Stock stock);
+    StockQueryDto updateStockPrice(int id, StockUpdateDto stockUpdateDto);
     
     // Delete the Stock by Id
-    Stock deleteStock(int id);
+    StockQueryDto deleteStock(int id);
 }

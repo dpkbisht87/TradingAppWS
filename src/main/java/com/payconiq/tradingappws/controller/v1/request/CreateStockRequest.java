@@ -26,6 +26,6 @@ public class CreateStockRequest {
     
     @DecimalMin(value = "0.00", inclusive = false)
     @Digits(integer=5, fraction=2)
-    private BigDecimal price;
+    private BigDecimal currentPrice;
 }
 
