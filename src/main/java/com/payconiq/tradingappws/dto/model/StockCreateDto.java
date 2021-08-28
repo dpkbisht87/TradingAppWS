@@ -18,7 +18,7 @@ import java.util.Date;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data
 public class StockCreateDto {
-    private Long id;
+    private int id;
     
     private String name;
     

@@ -18,5 +18,5 @@ import javax.validation.constraints.NotBlank;
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class StockDeleteDto {
-    private Long id;
+    private int id;
 }

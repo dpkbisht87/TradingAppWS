@@ -9,6 +9,7 @@ import com.payconiq.tradingappws.exception.CreateStockFailedException;
 import com.payconiq.tradingappws.exception.DuplicateStockException;
 import com.payconiq.tradingappws.exception.StockLockedException;
 import com.payconiq.tradingappws.exception.StockNotfoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
@@ -25,26 +26,30 @@ import java.util.stream.Collectors;
 @EnableAsync
 public class StockServiceImpl implements StockService{
     
-    @Autowired
     private StockRepository stockRepository;
     
-    @Autowired
+    
     private ModelMapper modelMapper;
     
     @Value("${stock.lock.timeout}")
     private String lockTimeout;
     
+    public StockServiceImpl(StockRepository stockRepository, ModelMapper modelMapper, String lockTimeout) {
+        this.stockRepository = stockRepository;
+        this.modelMapper = modelMapper;
+        this.lockTimeout = lockTimeout;
+    }
+    
     @Override
-    public Set<StockQueryDto> getAllStocks() {
-        Set<StockQueryDto> listOfStocks = stockRepository.findAll()
+    public List<StockQueryDto> getAllStocks() {
+        List<StockQueryDto> listOfStocks = stockRepository.findAll()
                 .stream()
-                .map(stock -> modelMapper.map(stock, StockQueryDto.class))
-                .collect(Collectors.toCollection(TreeSet::new));
+                .map(user -> modelMapper.map(user, StockQueryDto.class))
+                .collect(Collectors.toList());
         if (!listOfStocks.isEmpty()){
             return listOfStocks;
         }
         throw new StockNotfoundException("No stocks found.");
-        
     }
     
     @Override
@@ -167,7 +172,8 @@ public class StockServiceImpl implements StockService{
             Stock stockModel = stock.get();
             if(!stockModel.isLocked()){
                 stockRepository.deleteById(id);
-                return modelMapper.map(stock.get(), StockQueryDto.class);
+                StockQueryDto deletedStock = modelMapper.map(stock.get(), StockQueryDto.class);
+                return deletedStock;
             }
             String message = "Stock with id : "+ id +" is locked. Please try after sometime.";
             throw new StockLockedException(message);

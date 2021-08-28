@@ -19,7 +19,7 @@ import java.util.Date;
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class StockQueryDto  implements Comparable {
-    private Long id;
+    private int id;
     
     private String name;
     
