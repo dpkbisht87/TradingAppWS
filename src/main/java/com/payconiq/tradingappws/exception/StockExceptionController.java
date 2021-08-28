@@ -19,6 +19,11 @@ public class StockExceptionController {
     
     @ExceptionHandler(value=DuplicateStockException.class)
     public ResponseEntity<Object> exception(DuplicateStockException exception){
+        return new ResponseEntity<>(exception.getMessage(), HttpStatus.CONFLICT);
+    }
+    
+    @ExceptionHandler(value=CreateStockFailedException.class)
+    public ResponseEntity<Object> exception(CreateStockFailedException exception){
         return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
 }

@@ -5,17 +5,24 @@ import com.payconiq.tradingappws.dao.repository.StockRepository;
 import com.payconiq.tradingappws.dto.model.StockCreateDto;
 import com.payconiq.tradingappws.dto.model.StockQueryDto;
 import com.payconiq.tradingappws.dto.model.StockUpdateDto;
+import com.payconiq.tradingappws.exception.CreateStockFailedException;
 import com.payconiq.tradingappws.exception.DuplicateStockException;
 import com.payconiq.tradingappws.exception.StockLockedException;
 import com.payconiq.tradingappws.exception.StockNotfoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.modelmapper.ModelMapper;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 @Service
+@EnableAsync
 public class StockServiceImpl implements StockService{
     
     @Autowired
@@ -24,12 +31,20 @@ public class StockServiceImpl implements StockService{
     @Autowired
     private ModelMapper modelMapper;
     
+    @Value("${stock.lock.timeout}")
+    private String lockTimeout;
+    
     @Override
     public Set<StockQueryDto> getAllStocks() {
-        return stockRepository.findAll()
+        Set<StockQueryDto> listOfStocks = stockRepository.findAll()
                 .stream()
                 .map(stock -> modelMapper.map(stock, StockQueryDto.class))
                 .collect(Collectors.toCollection(TreeSet::new));
+        if (!listOfStocks.isEmpty()){
+            return listOfStocks;
+        }
+        throw new StockNotfoundException("No stocks found.");
+        
     }
     
     @Override
@@ -42,16 +57,50 @@ public class StockServiceImpl implements StockService{
                 return null;
             }
             Stock stockModel = new Stock()
-                                       .setId(uniqueId)
-                                       .setName(stockCreateDto.getName())
-                                       .setCurrentPrice(stockCreateDto.getCurrentPrice())
-                                       .setCreationDate(new Date())
-                                       .setLocked(true);
-            stockRepository.save(stockModel);
-            return modelMapper.map(stockModel, StockQueryDto.class);
+                    .setId(uniqueId)
+                    .setName(stockCreateDto.getName())
+                    .setCurrentPrice(stockCreateDto.getCurrentPrice())
+                    .setCreationDate(new Date())
+                    .setLocked(true);
+            try {
+                CompletableFuture <Stock> stock = createStockAsync(stockModel);
+                preventAbusivePriceUpdate(uniqueId);
+                CompletableFuture.anyOf(stock).join();
+                return modelMapper.map(stock.get(), StockQueryDto.class);
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+                String message = "Stock with name : "+ stockCreateDto.getName() +" creation failed.";
+                throw new CreateStockFailedException(message);
+            }
         }
         String message = "Stock with name : "+ stockCreateDto.getName() +" already exists.";
         throw new DuplicateStockException(message);
+    }
+    
+    @Async
+    public CompletableFuture<Stock> createStockAsync(Stock stockModel){
+        return CompletableFuture.completedFuture(stockRepository.save(stockModel));
+    }
+    
+    @Async
+    public void preventAbusivePriceUpdate(int id){
+        new Timer().schedule(
+            new TimerTask() {
+                @Override
+                public void run() {
+                    Optional<Stock> stock = stockRepository.findById(id);
+                    if (stock.isPresent()){
+                        Stock stockModel = stock.get();
+                        stockModel.setLocked(false);
+                        stockRepository.save(stockModel);
+                    } else {
+                        String message = "Stock with id : "+ id +" not found";
+                        throw new StockNotfoundException(message);
+                    }
+                }
+            },
+            Long.parseLong(lockTimeout)
+        );
     }
     
     private int generateUniqueId() {
@@ -73,7 +122,7 @@ public class StockServiceImpl implements StockService{
     public StockQueryDto getStockById(int id) {
         Optional<Stock> stock = stockRepository.findById(id);
         if (stock.isPresent()){
-            return modelMapper.map(stock.get(), StockQueryDto.class); 
+            return modelMapper.map(stock.get(), StockQueryDto.class);
         }
         String message = "Stock with id : "+ id +" not found";
         throw new StockNotfoundException(message);
@@ -89,6 +138,12 @@ public class StockServiceImpl implements StockService{
                 stockModel.setLocked(true);
                 stockModel.setCurrentPrice(stockUpdateDto.getCurrentPrice());
                 stockModel = stockRepository.save(stockModel);
+                
+                CompletableFuture <Stock> updatedStock = updateStockPriceAsync(stockModel);
+                preventAbusivePriceUpdate(stockModel.getId());
+                
+                CompletableFuture.anyOf(updatedStock).join();
+                
                 return modelMapper.map(stockModel, StockQueryDto.class);
             } else {
                 String message = "Stock with id : "+ id +" is locked. Please try after sometime.";
@@ -98,6 +153,11 @@ public class StockServiceImpl implements StockService{
             String message = "Stock with id : "+ id +"  not found";
             throw new StockNotfoundException(message);
         }
+    }
+    
+    @Async
+    public CompletableFuture<Stock> updateStockPriceAsync(Stock stockModel){
+        return CompletableFuture.completedFuture(stockRepository.save(stockModel));
     }
     
     @Override

@@ -62,7 +62,7 @@ public class TradingAppController {
     public ResponseEntity<StockQueryDto> updateStockPrice(@PathVariable int id, 
                                                           @Valid @RequestBody UpdateStockRequest updateStockRequest){
         StockUpdateDto stockUpdateDto = new StockUpdateDto()
-                                                .setCurrentPrice(updateStockRequest.getPrice());
+                                                .setCurrentPrice(updateStockRequest.getCurrentPrice());
         StockQueryDto stockQueryDto =  stockService.updateStockPrice(id, stockUpdateDto);
         if (stockQueryDto != null) {
             return ResponseEntity.ok().body(stockQueryDto);
