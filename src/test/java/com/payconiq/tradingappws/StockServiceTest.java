@@ -1,11 +1,10 @@
 package com.payconiq.tradingappws;
 
 import com.payconiq.tradingappws.dao.entity.Stock;
-import com.payconiq.tradingappws.dao.repository.StockRepository;
+import com.payconiq.tradingappws.dao.repository.mock.StockMockedDataRepository;
 import com.payconiq.tradingappws.dto.model.StockCreateDto;
 import com.payconiq.tradingappws.dto.model.StockQueryDto;
 import com.payconiq.tradingappws.dto.model.StockUpdateDto;
-import com.payconiq.tradingappws.service.StockService;
 import com.payconiq.tradingappws.service.StockServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,8 +14,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.ui.ModelMap;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -28,7 +25,8 @@ import static org.mockito.Mockito.when;
 public class StockServiceTest {
     
     @Mock
-    private StockRepository stockRepository;
+//    private StockRepository stockRepository;
+    private StockMockedDataRepository stockRepository;
     
     @InjectMocks
     StockServiceImpl stockService;

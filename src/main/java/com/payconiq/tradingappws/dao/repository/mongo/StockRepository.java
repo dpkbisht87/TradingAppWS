@@ -1,4 +1,4 @@
-package com.payconiq.tradingappws.dao.repository;
+package com.payconiq.tradingappws.dao.repository.mongo;
 
 import com.payconiq.tradingappws.dao.entity.Stock;
 import org.springframework.data.mongodb.repository.MongoRepository;

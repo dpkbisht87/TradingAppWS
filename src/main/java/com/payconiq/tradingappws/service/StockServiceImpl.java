@@ -1,7 +1,7 @@
 package com.payconiq.tradingappws.service;
 
 import com.payconiq.tradingappws.dao.entity.Stock;
-import com.payconiq.tradingappws.dao.repository.StockRepository;
+import com.payconiq.tradingappws.dao.repository.mock.StockMockedDataRepository;
 import com.payconiq.tradingappws.dto.model.StockCreateDto;
 import com.payconiq.tradingappws.dto.model.StockQueryDto;
 import com.payconiq.tradingappws.dto.model.StockUpdateDto;
@@ -9,8 +9,6 @@ import com.payconiq.tradingappws.exception.CreateStockFailedException;
 import com.payconiq.tradingappws.exception.DuplicateStockException;
 import com.payconiq.tradingappws.exception.StockLockedException;
 import com.payconiq.tradingappws.exception.StockNotfoundException;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -26,23 +24,32 @@ import java.util.stream.Collectors;
 @EnableAsync
 public class StockServiceImpl implements StockService{
     
-    private StockRepository stockRepository;
+//     Local Mongo DB
+//    private StockRepository stockRepository;
     
+    // Local In memory mocked DB
+    private final StockMockedDataRepository stockMockedDataRepository;
     
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
     
     @Value("${stock.lock.timeout}")
     private String lockTimeout;
     
-    public StockServiceImpl(StockRepository stockRepository, ModelMapper modelMapper, String lockTimeout) {
+/*    public StockServiceImpl(StockRepository stockRepository, ModelMapper modelMapper, String lockTimeout) {
         this.stockRepository = stockRepository;
+        this.modelMapper = modelMapper;
+        this.lockTimeout = lockTimeout;
+    }*/
+    
+    public StockServiceImpl(StockMockedDataRepository stockMockedDataRepository, ModelMapper modelMapper, String lockTimeout) {
+        this.stockMockedDataRepository = stockMockedDataRepository;
         this.modelMapper = modelMapper;
         this.lockTimeout = lockTimeout;
     }
     
     @Override
     public List<StockQueryDto> getAllStocks() {
-        List<StockQueryDto> listOfStocks = stockRepository.findAll()
+        List<StockQueryDto> listOfStocks = stockMockedDataRepository.findAll()
                 .stream()
                 .map(user -> modelMapper.map(user, StockQueryDto.class))
                 .collect(Collectors.toList());
@@ -55,7 +62,7 @@ public class StockServiceImpl implements StockService{
     @Override
     public StockQueryDto createStock(StockCreateDto stockCreateDto) {
         // Verify that stock with the same name does not exist
-        Optional<Stock> duplicateStock = Optional.ofNullable(stockRepository.findByName(stockCreateDto.getName()));
+        Optional<Stock> duplicateStock = Optional.ofNullable(stockMockedDataRepository.findByName(stockCreateDto.getName()));
         if (!duplicateStock.isPresent()) {
             int uniqueId = generateUniqueId();
             if (uniqueId == -1){
@@ -84,7 +91,7 @@ public class StockServiceImpl implements StockService{
     
     @Async
     public CompletableFuture<Stock> createStockAsync(Stock stockModel){
-        return CompletableFuture.completedFuture(stockRepository.save(stockModel));
+        return CompletableFuture.completedFuture(stockMockedDataRepository.save(stockModel));
     }
     
     @Async
@@ -93,11 +100,11 @@ public class StockServiceImpl implements StockService{
             new TimerTask() {
                 @Override
                 public void run() {
-                    Optional<Stock> stock = stockRepository.findById(id);
+                    Optional<Stock> stock = stockMockedDataRepository.findById(id);
                     if (stock.isPresent()){
                         Stock stockModel = stock.get();
                         stockModel.setLocked(false);
-                        stockRepository.save(stockModel);
+                        stockMockedDataRepository.save(stockModel);
                     } else {
                         String message = "Stock with id : "+ id +" not found";
                         throw new StockNotfoundException(message);
@@ -113,7 +120,7 @@ public class StockServiceImpl implements StockService{
         Random rand = new Random();
         while (retry < 3) {
             int newId = rand.nextInt(10000000);
-            Optional<Stock> stock = stockRepository.findById(newId);
+            Optional<Stock> stock = stockMockedDataRepository.findById(newId);
             if (!stock.isPresent()) {
                 return newId;
             } else {
@@ -125,7 +132,7 @@ public class StockServiceImpl implements StockService{
     
     @Override
     public StockQueryDto getStockById(int id) {
-        Optional<Stock> stock = stockRepository.findById(id);
+        Optional<Stock> stock = stockMockedDataRepository.findById(id);
         if (stock.isPresent()){
             return modelMapper.map(stock.get(), StockQueryDto.class);
         }
@@ -135,14 +142,14 @@ public class StockServiceImpl implements StockService{
     
     @Override
     public StockQueryDto updateStockPrice(int id, StockUpdateDto stockUpdateDto) {
-        Optional<Stock> stock = stockRepository.findById(id);
+        Optional<Stock> stock = stockMockedDataRepository.findById(id);
         if (stock.isPresent()) {
             Stock stockModel = stock.get();
             if(!stockModel.isLocked()){
                 stockModel.setLastUpdate(new Date());
                 stockModel.setLocked(true);
                 stockModel.setCurrentPrice(stockUpdateDto.getCurrentPrice());
-                stockModel = stockRepository.save(stockModel);
+                stockModel = stockMockedDataRepository.save(stockModel);
                 
                 CompletableFuture <Stock> updatedStock = updateStockPriceAsync(stockModel);
                 preventAbusivePriceUpdate(stockModel.getId());
@@ -162,18 +169,17 @@ public class StockServiceImpl implements StockService{
     
     @Async
     public CompletableFuture<Stock> updateStockPriceAsync(Stock stockModel){
-        return CompletableFuture.completedFuture(stockRepository.save(stockModel));
+        return CompletableFuture.completedFuture(stockMockedDataRepository.save(stockModel));
     }
     
     @Override
     public StockQueryDto deleteStock(int id) {
-        Optional<Stock> stock = stockRepository.findById(id);
+        Optional<Stock> stock = stockMockedDataRepository.findById(id);
         if(stock.isPresent()){
             Stock stockModel = stock.get();
             if(!stockModel.isLocked()){
-                stockRepository.deleteById(id);
-                StockQueryDto deletedStock = modelMapper.map(stock.get(), StockQueryDto.class);
-                return deletedStock;
+                stockMockedDataRepository.deleteById(id);
+                return modelMapper.map(stock.get(), StockQueryDto.class);
             }
             String message = "Stock with id : "+ id +" is locked. Please try after sometime.";
             throw new StockLockedException(message);

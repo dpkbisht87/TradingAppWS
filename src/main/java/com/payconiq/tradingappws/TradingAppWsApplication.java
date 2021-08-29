@@ -1,35 +1,38 @@
 package com.payconiq.tradingappws;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.payconiq.tradingappws.dao.entity.Stock;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.util.ResourceUtils;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.util.concurrent.Executor;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.List;
 
 @SpringBootApplication
 @EnableAsync
 public class TradingAppWsApplication {
     
-    @Bean("threadPoolTaskExecutor")
-    public TaskExecutor getAsyncExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(20);
-        executor.setMaxPoolSize(1000);
-        executor.setWaitForTasksToCompleteOnShutdown(true);
-        executor.setThreadNamePrefix("Async-");
-        return executor;
-    }
     public static void main(String[] args) {
         SpringApplication.run(TradingAppWsApplication.class, args);
     }
     @Bean
     public ModelMapper modelMapper() {
         return new ModelMapper();
+    }
+    
+    @Bean
+    public String lockTimeout(){
+        return "";
     }
 }

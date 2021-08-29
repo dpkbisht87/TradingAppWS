@@ -1,0 +1,24 @@
+[
+  {
+    "id": 2341205,
+    "name": "Company1",
+    "currentPrice": 7121.16,
+    "creationDate": "2021-08-28T19:50:14.037+00:00",
+    "lastUpdate": "2021-08-28T19:50:31.465+00:00",
+    "locked": false
+  },
+  {
+    "id": 4931128,
+    "name": "Company2",
+    "currentPrice": 5002.00,
+    "creationDate": "2021-08-28T20:28:24.078+00:00",
+    "locked": false
+  },
+  {
+    "id": 2620725,
+    "name": "Company3",
+    "currentPrice": 5002.00,
+    "creationDate": "2021-08-28T20:28:27.967+00:00",
+    "locked": false
+  }
+]
