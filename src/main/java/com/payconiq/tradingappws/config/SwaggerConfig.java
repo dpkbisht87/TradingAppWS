@@ -12,7 +12,7 @@ import static springfox.documentation.builders.PathSelectors.regex;
 @Configuration
 @EnableSwagger2
 public class SwaggerConfig {
-    public Docket productApi() {
+    public Docket stockApi() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .select()
                 .apis(RequestHandlerSelectors.basePackage("com.payconiq.tradingappws.controller.v1"))
