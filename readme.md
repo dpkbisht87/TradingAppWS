@@ -19,8 +19,9 @@
 This application focuses on the main use case for online trading with the following operations.
 1. List all Stocks
 2. Create a new Stock
-3. Update the price of existing stock
-4. Delete the stock
+3. Get Single Stock
+4. Update the price of existing stock
+5. Delete the stock
 
 _Update_ and _Delete_ operation can not be performed on a locked stock.
 A stock will go on a _locked_ state if it is newly created or its price has been updated recently.
