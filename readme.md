@@ -50,6 +50,9 @@ The mapping of models to the DTOs can be handled using ModelMapper utility.
 The data access objects (DAOs) allow us to persist and retrieve data from the database.
 They are all extensions of the MongoRepository and MockData Interface.
 
+**_Services_**
+The service layer holds the business logic like generating the unique Id, generating the timestamp. This layer interacts with the controller as well as with the DAO layer. 
+
 **_Controllers_**
 Last, but the most important part is the controller layer. It binds everything together right from the moment a request is intercepted till the response is prepared and sent back. The controller layer is present in the controller package, the best practices suggest that we keep this layer versioned to support multiple versions of the application and the same practice is applied here. 
 
